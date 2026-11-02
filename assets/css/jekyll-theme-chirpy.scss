@@ -20,7 +20,7 @@
 
 :root,
 html:root[data-bs-theme='dark'] {
-  --accent-color: #5eead4;
+  --accent-color: #7b96c4;
   --main-bg: #101010;
   --main-border-color: #2c2c2c;
   --text-color: #d4d4d4;
@@ -55,7 +55,7 @@ html:root[data-bs-theme='dark'] {
   --button-bg: #222222;
   --btn-border-color: #444444;
   --btn-backtotop-border-color: #444444;
-  --toc-highlight: #5eead4;
+  --toc-highlight: var(--accent-color);
   --toc-popup-border-color: #444444;
   --highlight-bg-color: #151515;
   --highlighter-rouge-color: #dedede;
