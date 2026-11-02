@@ -17,13 +17,13 @@ case "${1:-serve}" in
     bundle config set --local path vendor/bundle
     BUNDLE_TIMEOUT=15 BUNDLE_RETRY=1 bundle install --jobs 4
     ;;
-  build) bundle exec jekyll build --trace ;;
+  build) bundle exec jekyll build --trace "${@:2}" ;;
   check) bundle exec htmlproofer _site --disable-external ;;
   pages-check)
     bundle exec jekyll build --baseurl /preview-blog --destination .runtime/pages-smoke/preview-blog
     bundle exec htmlproofer .runtime/pages-smoke --disable-external
     ;;
-  serve) bundle exec jekyll serve --host 127.0.0.1 --port 4000 --force_polling ;;
+  serve) bundle exec jekyll serve --host 127.0.0.1 --port 4000 --force_polling "${@:2}" ;;
   lock) bundle lock --add-platform x86_64-linux ;;
   *) printf 'Usage: bash tools/local.sh [install|build|check|pages-check|serve|lock]\n' >&2; exit 2 ;;
 esac
