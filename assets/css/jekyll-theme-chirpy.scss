@@ -247,7 +247,7 @@ main .dynamic-title {
   letter-spacing: -0.06em;
 }
 main .dynamic-title::before { content: '/'; margin-right: 0.5em; color: #707070; }
-article > .content > p { max-width: 68ch; }
+article[data-toc] > .content > p { max-width: 68ch; }
 
 // Match the theme's dark-mode scope, including its syntax and table rules.
 html:root[data-bs-theme='dark'] {
