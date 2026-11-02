@@ -30,7 +30,7 @@ all_normal[i] %} {% endfor %} {% endif %}
 
 <div id="post-list" class="flex-grow-1 px-xl-1">
   {% if posts.size == 0 %}
-    <p class="text-muted">No posts yet.</p>
+    <p class="text-muted koga-empty">No posts yet.</p>
   {% endif %}
   {% for post in posts %}
   <article class="card-wrapper card">
