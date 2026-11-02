@@ -1,0 +1,32 @@
+# Bundler cache
+.bundle
+vendor
+# Keep Gemfile.lock for reproducible local and GitHub Actions builds.
+
+# Jekyll cache
+.jekyll-cache
+.jekyll-metadata
+_site
+
+# RubyGems
+*.gem
+
+# IDE configurations
+.idea
+.vscode/
+
+# Misc
+_sass/vendors
+assets/js/dist
+
+# Hidden system files
+*~
+.DS_Store
+Thumbs.db
+
+# Local runtime and preview logs
+.runtime/
+*.log
+__pycache__/
+# Local screenshots and QA reports do not belong in the site source.
+docs/qa/

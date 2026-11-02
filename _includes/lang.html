@@ -1,0 +1,9 @@
+{% comment %}
+  Keep interface labels in the site language. A post's lang metadata describes
+  its content and is still used by the theme's HTML and SEO tags.
+{% endcomment %}
+{% if site.data.locales[site.lang] %}
+  {% assign lang = site.lang %}
+{% else %}
+  {% assign lang = 'en' %}
+{% endif %}

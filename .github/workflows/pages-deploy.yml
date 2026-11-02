@@ -1,0 +1,97 @@
+name: "Build and Deploy"
+
+# Local preview is the default. Run Actions manually; deployment is opt-in.
+# TODO: Before deployment, select Settings > Pages > Source > GitHub Actions.
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: "Deploy to GitHub Pages after a successful build and link check"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # A build-only run works before Pages or a production URL is configured.
+      - name: Setup Pages
+        if: ${{ inputs.deploy }}
+        id: pages
+        uses: actions/configure-pages@v6
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+          bundler-cache: true
+
+      - name: Build site
+        env:
+          JEKYLL_ENV: "production"
+          DEPLOY_ENABLED: ${{ inputs.deploy }}
+          PAGES_ORIGIN: ${{ steps.pages.outputs.origin }}
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        run: |
+          if [ "$DEPLOY_ENABLED" = "true" ]; then
+            if [[ ! "$PAGES_ORIGIN" =~ ^https:// ]]; then
+              echo "::error::GitHub Pages must return a valid HTTPS origin before deployment."
+              exit 1
+            fi
+            export BUILD_ORIGIN="$PAGES_ORIGIN"
+            BUILD_BASE_PATH="$PAGES_BASE_PATH"
+          else
+            export BUILD_ORIGIN="http://127.0.0.1:4000"
+            BUILD_BASE_PATH=""
+          fi
+          mkdir -p .runtime
+          ruby -ryaml -e 'File.write(".runtime/pages.yml", {"url" => ENV.fetch("BUILD_ORIGIN")}.to_yaml)'
+          bundle exec jekyll build \
+            --config "_config.yml,.runtime/pages.yml" \
+            --baseurl "$BUILD_BASE_PATH" \
+            --destination "_site$BUILD_BASE_PATH"
+
+      - name: Test site
+        run: |
+          bundle exec htmlproofer _site \
+            --disable-external \
+            --ignore-urls "/^http:\/\/127.0.0.1/,/^http:\/\/0.0.0.0/,/^http:\/\/localhost/"
+
+      - name: Upload site artifact
+        if: ${{ inputs.deploy }}
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: "_site${{ steps.pages.outputs.base_path }}"
+
+  deploy:
+    if: ${{ inputs.deploy }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

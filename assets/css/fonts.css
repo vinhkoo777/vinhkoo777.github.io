@@ -1,0 +1,16 @@
+/* JetBrains Mono by JetBrains, SIL Open Font License 1.1 (assets/fonts/OFL.txt).
+   Block the brief fallback-font paint so navigation does not resize the text. */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('../fonts/JetBrainsMono-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('../fonts/JetBrainsMono-Bold.woff2') format('woff2');
+}

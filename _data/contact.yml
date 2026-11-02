@@ -1,0 +1,12 @@
+# Public profile links supplied by the author.
+- type: github
+  icon: "fa-brands fa-github"
+- type: facebook
+  icon: "fa-brands fa-facebook"
+  url: "https://www.facebook.com/tam.vinh.719027/"
+- type: linkedin
+  icon: "fa-brands fa-linkedin"
+  url: "https://www.linkedin.com/in/le-vu-tam-vinh-8178b5334/"
+- type: email
+  icon: "fas fa-envelope"
+  noblank: true
