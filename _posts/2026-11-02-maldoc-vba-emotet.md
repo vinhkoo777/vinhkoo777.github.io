@@ -14,20 +14,17 @@ Một tài liệu Office, vài macro và một chuỗi dài đến mức nhìn t
 
 Mình đi từ cấu trúc OLE đến VBA, gỡ lớp làm rối rồi đọc phần PowerShell bên trong. Macro lần này có nhiều tham vọng hơn việc căn lề văn bản.
 
-> Bài được biên tập lại từ write-up cũ của mình. Các ảnh bên dưới được trích nguyên bản từ PDF; mình chưa chạy lại mẫu trong lần biên tập này. Các lệnh phân tích được trình bày để giải thích cách làm.
-> {: .prompt-info }
-
 ## Nhìn nhanh hướng phân tích
 
 | Cần tìm                                      | Công cụ / bằng chứng                          |
 | :------------------------------------------- | :-------------------------------------------- |
 | Cấu trúc stream và vị trí macro              | `oledump.py`                                  |
 | Điểm vào, từ khóa đáng ngờ, chuỗi trong form | `olevba`                                      |
-| Nhãn nhận diện họ mã độc                     | Ảnh kết quả VirusTotal trong bài cũ           |
+| Nhãn nhận diện họ mã độc                     | Kết quả tra cứu VirusTotal                    |
 | Gỡ chuỗi chèn lặp                            | Find & Replace hoặc xử lý chuỗi bằng Python   |
 | Nội dung lệnh đã mã hóa                      | CyberChef: From Base64 > Decode text UTF-16LE |
 
-Tên tệp trong ảnh phân tích là `sample.bin`. Bài này tập trung vào **phân tích tĩnh**: đọc cấu trúc, mã và chuỗi; các bằng chứng không xác nhận tải payload hay thực thi thành công.
+Mẫu được phân tích có tên `sample.bin`. Bài này tập trung vào **phân tích tĩnh**: đọc cấu trúc, mã và chuỗi để xác định hành vi dự kiến của tài liệu.
 
 ## 1. Từ OLE streams đến điểm vào VBA
 
@@ -46,7 +43,7 @@ python oledump.py sample.bin
 ```
 
 ![Các stream VBA trong kết quả oledump, gồm stream 16 Macros/VBA/roubhaol](/assets/img/posts/maldoc/macro-streams.png){: width="449" height="83" }
-_Các dòng stream được lưu trong write-up gốc._
+_Các stream VBA và chỉ số tương ứng trong kết quả oledump._
 
 Điểm dễ đọc nhầm nằm ở chữ **highest**: câu hỏi cần chỉ số lớn nhất của stream chứa macro, không phải tổng số stream của tài liệu. Vì vậy, việc lát nữa gặp stream `34` không mâu thuẫn với đáp án này.
 
@@ -77,18 +74,18 @@ Theo [tài liệu Word VBA](https://learn.microsoft.com/en-us/office/vba/api/wor
 
 ### Q3 - Tài liệu đang cố thả họ mã độc nào?
 
-Trong bài cũ, mình tính MD5 của mẫu rồi tra cứu VirusTotal:
+Mình tính MD5 của mẫu rồi dùng hash để tra cứu VirusTotal:
 
 ```bash
 md5sum sample.bin
 ```
 
-Ảnh kết quả lưu lại có nhãn tổng hợp `trojan.emotet/w97m`; một số engine cũng gắn tên `Emotet` hoặc `Emoldr`.
+Kết quả có nhãn tổng hợp `trojan.emotet/w97m`; một số engine cũng gắn tên `Emotet` hoặc `Emoldr`.
 
-![Ảnh VirusTotal trong write-up cũ hiển thị các nhãn nhận diện liên quan đến Emotet](/assets/img/posts/maldoc/virustotal-family.png){: width="1641" height="595" }
-_Kết quả tra cứu tại thời điểm làm bài, không phải một lần quét mới._
+![Kết quả VirusTotal hiển thị các nhãn nhận diện liên quan đến Emotet](/assets/img/posts/maldoc/virustotal-family.png){: width="1641" height="595" }
+_Các nhãn nhận diện liên quan đến Emotet trong kết quả VirusTotal._
 
-Những nhãn này là cơ sở cho đáp án của challenge. PDF không lưu giá trị hash, nên mình không bổ sung một hash mới hay coi đây là kết quả nhận diện được kiểm chứng lại trong lần viết này.
+Các nhãn nhận diện này là cơ sở để xác định họ mã độc mà tài liệu đang cố thả.
 
 **Đáp án: `Emotet`.**
 
@@ -113,8 +110,6 @@ python oledump.py -s 34 -d sample.bin > stream-34.bin
 
 Trong đó, `-s 34` chọn stream và `-d` xuất dữ liệu thô. Tệp xuất ra vẫn có thể chứa cấu trúc nhị phân của form, không nên mặc định nó là một tệp Base64 thuần văn bản. Đối chiếu thêm phần **VBA FORM STRING** do `olevba` hiển thị giúp xác định chuỗi cần xử lý.
 
-Ghi chú cũ của mình gọi phần liệt kê này là `oleid`. Khi xem lại ảnh, công cụ tương ứng là **`oledump.py`**; mình sửa tên ở đây để tránh nhầm lúc tái hiện.
-
 **Đáp án: `34`.**
 
 ### Q5 - User-form có tên gì?
@@ -134,18 +129,18 @@ Nhờ vậy, có thể nối phần module VBA với vùng dữ liệu form thay
 
 ### Q6 - Chuỗi nào được chèn vào để làm rối Base64?
 
-Trong phần output đã lưu, có một chuỗi lặp lại rất nhiều lần:
+Trong output, có một chuỗi lặp lại rất nhiều lần:
 
 ```plaintext
 2342772g3&*gs7712ffvs626fq
 ```
 
 ![Đoạn output chứa chuỗi chèn lặp 2342772g3&*gs7712ffvs626fq](/assets/img/posts/maldoc/obfuscation-marker.png){: width="447" height="106" }
-_Giá trị dùng để làm nhiễu chuỗi, được đánh dấu trong ảnh gốc._
+_Chuỗi làm nhiễu được đánh dấu trong kết quả phân tích._
 
 Đây là lớp chèn nhiễu cần gỡ trước khi đọc lệnh và giải mã phần Base64. Các ký tự đặc biệt như `&` và `*` cũng là lý do cần cẩn thận nếu dùng Find & Replace với chế độ biểu thức chính quy.
 
-Trong bài cũ, mình dùng **Ctrl + H** trong VS Code, tìm đúng chuỗi trên và thay bằng chuỗi rỗng. Với thao tác này, tắt chế độ regex để giá trị được khớp nguyên văn.
+Mình dùng **Ctrl + H** trong VS Code, tìm đúng chuỗi trên và thay bằng chuỗi rỗng. Với thao tác này, tắt chế độ regex để giá trị được khớp nguyên văn.
 
 **Đáp án: `2342772g3&*gs7712ffvs626fq`.**
 
@@ -185,7 +180,7 @@ Mình đưa đối số Base64 đã làm sạch vào CyberChef. Recipe trong ả
 2. **Decode text**, chọn **UTF-16LE (1200)**, để đọc thành mã PowerShell.
 
 ![CyberChef giải mã Base64 rồi đọc UTF-16LE, output có WMI class và danh sách URL tải về](/assets/img/posts/maldoc/cyberchef-decoded.png){: width="1535" height="804" }
-_Ảnh gốc chứa cả recipe, dữ liệu đầu vào và đoạn PowerShell sau giải mã; có thể bấm ảnh để phóng to._
+_Recipe, dữ liệu đầu vào và đoạn PowerShell sau giải mã; có thể bấm ảnh để phóng to._
 
 Trong output có định danh `win32_Process` và lời gọi phương thức `Create`. Theo [tài liệu Microsoft về Win32_Process.Create](https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/create-method-in-class-win32-process), phương thức này tạo một tiến trình mới.
 
@@ -202,8 +197,6 @@ haoqunkong[.]com
 ```
 
 Đây là cách viết đã vô hiệu hóa liên kết; FQDN trong bằng chứng là `haoqunkong.com`. Mình chỉ đọc và đối chiếu chuỗi trong ảnh, không truy cập hạ tầng đó.
-
-Ghi chú cũ viết `haoqunkong///com`, nhưng cách viết này không phải FQDN hợp lệ. Khi biên tập, mình đối chiếu trực tiếp URL đầu tiên trong ảnh để sửa lại dấu phân cách.
 
 Ảnh còn cho thấy thao tác tạo `Net.WebClient`, gọi `DownloadFile` và kiểm tra kích thước tệp trước khi gọi WMI. Từ đó có thể mô tả ý định của đoạn mã là thử tải payload rồi khởi chạy. Thứ tự chuỗi trong mã không tự chứng minh tên miền nào thực sự đã được liên hệ hay tải thành công.
 
@@ -239,7 +232,7 @@ Document_Open
 
 Điểm đáng nhớ nhất với mình là **đừng dừng ở macro source**. Dữ liệu trong form, cách ghép chuỗi và cảnh báo liên quan đến P-code đều có thể quyết định bước phân tích tiếp theo. Một chuỗi trông như rác đôi khi chỉ đang chờ đúng thao tác Replace.
 
-Phạm vi bằng chứng của bài dừng ở ảnh phân tích tĩnh và kết quả tra cứu cũ. Chưa có mẫu gốc để đối chiếu hash, chưa xác minh lại cảnh báo VBA Stomping và chưa có dữ liệu chạy động xác nhận tải hay thực thi payload.
+Các kết quả trên mô tả cấu trúc và hành vi dự kiến của tài liệu qua phân tích tĩnh. Để xác nhận tải và thực thi payload, cần đối chiếu thêm dữ liệu chạy động.
 
 ## Tài liệu công cụ
 
