@@ -3,16 +3,12 @@ title: "MalDoc: từ macro VBA đến dấu vết Emotet"
 description: "Lần theo 9 câu hỏi của Maldoc: OLE streams, Document_Open, chuỗi Base64 bị làm rối và dấu vết tải Emotet."
 date: 2026-11-02 00:00:00 +0700
 lang: vi-VN
-categories: [CTF, Malware Analysis]
+categories: [Cyberdefenders, Malware Analysis]
 tags: [maldoc, ole, vba, powershell, emotet]
 author: koga
 toc: true
 comments: false
 ---
-
-Một tài liệu Office, vài macro và một chuỗi dài đến mức nhìn thôi đã muốn đóng tab. Bài **Maldoc** yêu cầu lần theo những dấu vết đó để tìm ra cách tài liệu khởi chạy mã, giấu lệnh và chuẩn bị tải Trojan.
-
-Mình đi từ cấu trúc OLE đến VBA, gỡ lớp làm rối rồi đọc phần PowerShell bên trong. Macro lần này có nhiều tham vọng hơn việc căn lề văn bản.
 
 ## Nhìn nhanh hướng phân tích
 

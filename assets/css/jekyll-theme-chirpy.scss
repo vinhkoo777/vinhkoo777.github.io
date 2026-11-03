@@ -24,6 +24,7 @@ html:root[data-bs-theme='dark'] {
   --main-bg: #101010;
   --main-border-color: #2c2c2c;
   --text-color: #d4d4d4;
+  --reading-text-color: #c4c4c4;
   --text-muted-color: #a3a3a3;
   --text-muted-highlight-color: #c2c2c2;
   --heading-color: var(--accent-color);
@@ -58,10 +59,10 @@ html:root[data-bs-theme='dark'] {
   --toc-highlight: var(--accent-color);
   --toc-popup-border-color: #444444;
   --highlight-bg-color: #151515;
-  --highlighter-rouge-color: #dedede;
+  --highlighter-rouge-color: #c8c8c8;
   --highlight-lineno-color: #999999;
-  --inline-code-bg: #262626;
-  --code-color: #d4d4d4;
+  --inline-code-bg: #222222;
+  --code-color: #c8c8c8;
   --code-header-text-color: #b0b0b0;
   --code-header-muted-color: #444444;
   --code-header-icon-color: #a3a3a3;
@@ -230,18 +231,23 @@ a, button, input { -webkit-tap-highlight-color: rgb(180 180 180 / 18%); }
 
 main { min-width: 0; }
 article {
-  > header h1 { font-size: clamp(1.75rem, 3vw, 2.3rem); letter-spacing: -0.055em; }
-  > header .post-desc { color: var(--text-color); }
+  > header h1 { font-size: clamp(1.65rem, 2.6vw, 2rem); letter-spacing: -0.055em; }
+  > header .post-desc { color: var(--post-list-text-color); font-size: 0.9375rem; line-height: 1.65; }
   .content {
-    font-size: 1rem;
-    line-height: 1.65;
+    color: var(--reading-text-color);
+    font-size: 0.9375rem;
+    line-height: 1.75;
+    letter-spacing: -0.01em;
+    word-spacing: -0.1em;
     overflow-wrap: anywhere;
-    h2 { font-size: 1.5rem; margin-top: 2.2rem; margin-bottom: 1rem; letter-spacing: -0.04em; }
-    h3 { font-size: 1.18rem; margin-top: 1.6rem; margin-bottom: 0.85rem; }
-    p, ul, ol, blockquote, .table-wrapper { margin-bottom: 1.1rem; }
+    h2 { font-size: 1.35rem; margin-top: 2.2rem; margin-bottom: 1rem; letter-spacing: -0.04em; }
+    h3 { font-size: 1.0625rem; margin-top: 1.6rem; margin-bottom: 0.85rem; }
+    h4 { font-size: 1rem; }
+    p, ul, ol, blockquote, .table-wrapper { margin-bottom: 1.2rem; }
     img { border: 1px solid var(--main-border-color); border-radius: 2px; }
     img + em { font-size: 0.8rem; line-height: 1.7; }
-    a { text-underline-offset: 0.2em; }
+    a { color: inherit; text-underline-offset: 0.2em; }
+    code.highlighter-rouge { font-size: 0.875em; }
   }
 }
 
@@ -263,7 +269,7 @@ main .dynamic-title::before { content: '/'; margin-right: 0.5em; color: #707070;
 // Match the theme's dark-mode scope, including its syntax and table rules.
 html:root[data-bs-theme='dark'] {
   .highlight, .highlight .w { background-color: var(--highlight-bg-color); }
-  .highlight [class] { color: #d4d4d4; background: transparent; }
+  .highlight [class] { color: #c8c8c8; background: transparent; }
   .highlight .lineno { color: #999999; }
   .highlight .c, .highlight .c1, .highlight .cm { color: #a3a3a3; }
   .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .kp, .highlight .kr, .highlight .kv {
@@ -290,7 +296,7 @@ html:root[data-bs-theme='dark'] {
 
 // Rouge uses a table for line numbers. Keep its layout separate from data tables.
 .content div.highlighter-rouge {
-  margin: 1.5rem 0;
+  margin: 1.25rem 0;
   max-width: 100%;
   border: 1px solid var(--main-border-color);
   border-radius: 2px;
@@ -300,9 +306,9 @@ html:root[data-bs-theme='dark'] {
 
   .code-header {
     height: auto;
-    min-height: 3rem;
+    min-height: 2.5rem;
     margin: 0;
-    padding: 0.25rem 0.5rem 0.25rem 1rem;
+    padding: 0 0.5rem 0 0.875rem;
     gap: 0.75rem;
     border-bottom: 1px solid var(--main-border-color);
     background: #1c1c1c;
@@ -317,7 +323,7 @@ html:root[data-bs-theme='dark'] {
 
   .highlight {
     margin: 0;
-    padding: 1rem 0;
+    padding: 0.7rem 0;
     border-radius: 0;
     background: #151515;
     overflow-x: auto;
@@ -326,8 +332,8 @@ html:root[data-bs-theme='dark'] {
 
     pre {
       margin: 0;
-      font-size: 0.9rem;
-      line-height: 1.85;
+      font-size: 0.8125rem;
+      line-height: 1.7;
       letter-spacing: 0;
       tab-size: 4;
       white-space: pre;
@@ -335,7 +341,7 @@ html:root[data-bs-theme='dark'] {
       word-break: normal;
     }
 
-    > pre { padding: 0 1.25rem; }
+    > pre { padding: 0 1rem; }
 
     table.rouge-table {
       width: 100%;
@@ -349,10 +355,10 @@ html:root[data-bs-theme='dark'] {
         display: table-cell;
         width: 1%;
         margin: 0;
-        padding: 0 0.85rem 0 1rem;
+        padding: 0 0.7rem 0 0.875rem;
         border-right: 1px solid #333333;
       }
-      td.rouge-code { padding: 0 1.25rem !important; }
+      td.rouge-code { padding: 0 1rem !important; }
     }
   }
 
@@ -430,11 +436,22 @@ html:root[data-bs-theme='dark'] #archives ul li:nth-child(odd) {
   body:has(#post-list) #access-lastmod { display: none; }
 }
 
+@media (min-width: 992px) and (max-width: 1599px) {
+  article > header h1 { font-size: 1.875rem; }
+  article > header .post-desc { font-size: 0.875rem; }
+  article .content {
+    font-size: 0.90625rem;
+    line-height: 1.8;
+    h2 { font-size: 1.25rem; }
+    h3 { font-size: 1rem; }
+  }
+  .content div.highlighter-rouge .highlight pre { font-size: 0.78125rem; }
+}
+
 @media (max-width: 767px) {
   #sidebar #avatar { width: 96px; height: 96px; }
   #post-list .card .card-body { padding: 1.25rem; }
   #post-list .post-preview img { aspect-ratio: 1200 / 630; height: auto; }
-  article .content h2 { font-size: 1.35rem; }
 }
 
 @media (max-width: 991px) {

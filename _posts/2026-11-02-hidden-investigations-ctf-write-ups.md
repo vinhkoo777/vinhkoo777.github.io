@@ -4,7 +4,7 @@ description: "Write-up các challenge mình giải tại Hidden Investigations C
 date: 2026-11-02 00:00:00 +0700
 lang: vi-VN
 categories: [CTF, Hidden Investigations]
-tags: [dfir, windows, ransomware, sysmon]
+tags: [dfir, windows, ransomware, sysmon, png, memory-forensics, evtx]
 author: koga
 toc: true
 comments: false
@@ -344,7 +344,7 @@ I will always be there for you bro!
 ```
 
 ![Các câu trả lời được xác nhận đúng từ dấu vết thực thi đến khôi phục nội dung bar.txt](/assets/img/posts/hidden-investigations/miner-victim/questions-06-13.png){: width="1485" height="841" }
-_Kết quả đối chiếu cho các câu 6–13; bấm ảnh để xem rõ từng giá trị._
+_Kết quả đối chiếu cho các câu 6-13; bấm ảnh để xem rõ từng giá trị._
 
 ### Q14 - Chuỗi ASCII của shred pattern
 
@@ -362,8 +362,8 @@ false - shredded file with pattern 0x706c6568
 
 ```plaintext
 0x706c6568
-    → 68 65 6c 70
-    → h  e  l  p
+    > 68 65 6c 70
+    > h  e  l  p
 ```
 
 Kiểm tra bằng Python:
@@ -428,4 +428,311 @@ Sau khi ghép đầy đủ kí tự
 
 ```plaintext
 hiCTF{1cmp_3xf1l_d3t3ct3d}
+```
+
+## Broken Signals
+
+Đề nói file không mở được và có thể sửa lại. File `broken_signal.dat` dài **15.916 byte**. Mình kiểm tra chữ ký file trước.
+
+### Kiểm tra chữ ký file
+
+Mình mở file trong **HxD**. Đầu file có:
+
+```plaintext
+00 00 00 00 0D 0A 1A 0A 00 00 00 0D 49 48 44 52
+```
+
+![HxD hiển thị bốn byte đầu bị ghi thành số không, phía sau còn dấu hiệu nhận diện PNG](/assets/img/posts/hidden-investigations/broken-signals/damaged-signature.png){: width="1630" height="921" }
+_Phần đầu file bị hỏng, nhưng các byte phía sau vẫn cung cấp manh mối._
+
+Nhìn đoạn này thì có hai chỗ đáng chú ý:
+
+- `49 48 44 52` là chuỗi ASCII **`IHDR`**, chunk đầu tiên của PNG.
+- `0D 0A 1A 0A` tại offset `0x04` khớp nửa sau chữ ký PNG.
+
+[Chữ ký PNG](https://www.w3.org/TR/png-3/#5PNG-file-signature) đầy đủ phải là:
+
+```plaintext
+89 50 4E 47 0D 0A 1A 0A
+```
+
+Vậy là bốn byte đầu đang bị thay bằng `00`. Chỉ đổi đuôi file thôi thì chưa sửa được chỗ này.
+
+### Sửa bốn byte đầu
+
+Tiếp theo mình Save As thành `conmeo.png`, rồi **ghi đè** đúng bốn byte ở offset `0x00-0x03`:
+
+```plaintext
+Offset       Trước sửa       Sau sửa
+0x00-0x03   00 00 00 00     89 50 4E 47
+```
+
+![Chữ ký PNG đã được khôi phục trong HxD bằng cách ghi đè bốn byte đầu](/assets/img/posts/hidden-investigations/broken-signals/repaired-signature.png){: width="1631" height="921" }
+_Khôi phục chữ ký, giữ nguyên vị trí của các chunk phía sau._
+
+Ở đây mình ghi đè chứ không chèn thêm byte. Chữ ký nằm ngoài các chunk nên không cần sửa CRC, kích thước file cũng giữ nguyên.
+
+Mở lại bản đã sửa thì được một ảnh **400 × 300** có dòng `SIGNAL INTERCEPTED`. Flag màu đỏ nằm ngay phía dưới.
+
+![Ảnh khôi phục hiển thị SIGNAL INTERCEPTED và flag của Broken Signals](/assets/img/posts/hidden-investigations/broken-signals/recovered-signal.png){: width="397" height="295" }
+_Nội dung ảnh đọc được sau khi sửa header._
+
+### Flag cuối cùng
+
+```plaintext
+hiCTF{h34d3r_r3p41r_m4st3r}
+```
+
+## Memory Liar
+
+File `memory-liar/memory.raw` dài **16 MiB**, chứa các cấu trúc tiến trình dựng cho bài. Có một tiến trình bị tách khỏi danh sách liên kết. Nếu mình chỉ duyệt danh sách thì có thể thấy nó báo sạch, trong khi quét các record vẫn tìm được tiến trình đó.
+
+### Tìm tiến trình bị unlink
+
+Mình quét ASCII `Proc`, rồi lấy base của từng record như sau:
+
+```plaintext
+record_base = offset(Proc) - 4
+```
+
+Tiếp đó đọc PID, Flink, Blink và tên tiến trình theo các offset này:
+
+| Offset so với record | Trường         |
+| :------------------- | :------------- |
+| `+0xBC`              | PID            |
+| `+0xC0`              | Flink          |
+| `+0xC4`              | Blink          |
+| `+0x174`             | Tên tiến trình |
+
+Lưu ý là đây là layout riêng của bài này, không lấy nguyên bộ offset này dùng cho mọi bản Windows được.
+
+Đi theo Flink từ `System` thì mình được:
+
+```plaintext
+System > smss > explorer > notepad > sentinel
+```
+
+Nhưng khi quét các record thì vẫn thấy **`winxnet.exe`, PID `1337`**, ở offset `0x35D000`. Nó không nằm trong chuỗi trên, còn Flink và Blink thì:
+
+```plaintext
+Flink = 0x8035D0C0
+Blink = 0x8035D0C0
+```
+
+Cả hai đều trỏ về chính list entry của nó, và cũng không có record nào khác trỏ tới nó. Vậy là tiến trình này đã bị unlink. Mình giữ lại PID `1337` để tìm tiếp ở bước sau.
+
+### Đọc vùng ROOT
+
+Đề nói audit báo “sạch”, nên mình nghĩ flag có thể nằm ở tiến trình bị giấu. Sau khi tìm được `winxnet.exe`, mình xem vùng nhớ kế bên thì thấy tại `0x35F000` có magic `ROOT`:
+
+```plaintext
+52 4F 4F 54  39 05 00 00  5D 00 00 00  33 00 00 00
+R  O  O  T  PID=1337     key=0x5D     length=0x33
+```
+
+![HxD hiển thị header ROOT cùng PID, khóa XOR và độ dài payload](/assets/img/posts/hidden-investigations/memory-liar/root-record.png){: width="1627" height="914" }
+_Header tại offset 0x35F000 nối payload với PID của tiến trình bị ẩn._
+
+`39 05 00 00` đọc little-endian là `0x539 = 1337`, khớp luôn với PID bị ẩn. Header dài `0x10` byte nên payload bắt đầu ở **`0x35F010`**, dài **`0x33 = 51` byte**, khóa XOR là **`0x5D`**.
+
+### Giải XOR payload
+
+Đến đây thì chọn 51 byte từ `0x35F010` trong HxD, copy dạng hex rồi đưa vào CyberChef: **From Hex > XOR**, khóa `5d`, chọn định dạng **HEX**.
+
+Còn trong hình dưới, mình nạp nguyên file `memory.raw` vào CyberChef nên sẽ dùng recipe này:
+
+1. **Drop bytes**: bỏ `3534864` byte đầu, tương ứng offset `0x35F010`.
+2. **Take bytes**: lấy `51` byte.
+3. **XOR**: khóa hex `5d`.
+
+![CyberChef trích 51 byte từ memory.raw và giải XOR để hiển thị flag Memory Liar](/assets/img/posts/hidden-investigations/memory-liar/xor-decoded.png){: width="1911" height="999" }
+_Recipe xử lý trực tiếp dữ liệu nhị phân và kết quả sau XOR._
+
+### Flag cuối cùng
+
+```plaintext
+hiCTF{dk0m_unl1nk_3pr0c3ss_l1st_cr0ss_ch3ck_7c3a9f}
+```
+
+## TESSERA
+
+Đề gợi ba tầng: giao tiếp cục bộ qua port, kho cô lập và một đối tượng chuyển hướng. Chúng tương ứng với **ALPC/ETW**, **kho DPAPI** và **NTFS reparse point**. Thư mục đề cho là cây file Windows đã xuất: `tessera/evidence/`.
+
+### Khôi phục phần metadata của log
+
+Ở đây tui sẽ mở thẳng file event log này bằng Event Viewer:
+
+```plaintext
+Microsoft-Windows-PowerShell%4Operational.evtx
+```
+
+Và như hình dưới thì không có gì hết =)))).
+
+![Event Viewer hiển thị không có sự kiện trong log PowerShell Operational](/assets/img/posts/hidden-investigations/tessera/empty-event-viewer.png){: width="1630" height="907" }
+_Event Viewer chưa hiển thị các record của file._
+
+Thì tui có hỏi ChatGPT là tại sao lại như vậy. Chỗ cần kiểm tra tiếp là metadata của log, vì Event Viewer trống chưa chắc là trong file không còn record.
+
+Mình kiểm tra thì các record vẫn còn. Dưới đây là script để fix lại metadata và CRC của chunk: tìm chữ ký `ElfChnk`, duyệt record từ offset `0x200` theo kích thước, rồi ghi kết quả sang `PS_fixed.evtx`.
+
+```python
+import struct
+import sys
+import zlib
+
+CHUNK = 65536
+HDR = 4096
+
+
+def fix_chunk(data, base):
+    chunk = bytes(data[base:base + CHUNK])
+    if chunk[:8] != b"ElfChnk\x00":
+        return False
+
+    offset = 512
+    records = []
+    while offset + 24 <= CHUNK:
+        if chunk[offset:offset + 4] != b"\x2a\x2a\x00\x00":
+            break
+        size, record_id = struct.unpack_from("<IQ", chunk, offset + 4)
+        if size < 24 or offset + size > CHUNK:
+            break
+        if struct.unpack_from("<I", chunk, offset + size - 4)[0] != size:
+            break
+        records.append((offset, size, record_id))
+        offset += size
+
+    if not records:
+        return False
+
+    first_id, last_id = records[0][2], records[-1][2]
+    last_offset, last_size, _ = records[-1]
+    free_offset = last_offset + last_size
+
+    struct.pack_into("<Q", data, base + 8, first_id)
+    struct.pack_into("<Q", data, base + 16, last_id)
+    struct.pack_into("<Q", data, base + 24, first_id)
+    struct.pack_into("<Q", data, base + 32, last_id)
+    struct.pack_into("<I", data, base + 44, last_offset)
+    struct.pack_into("<I", data, base + 48, free_offset)
+
+    chunk = bytes(data[base:base + CHUNK])
+    data_crc = zlib.crc32(chunk[512:free_offset]) & 0xFFFFFFFF
+    struct.pack_into("<I", data, base + 52, data_crc)
+    chunk = bytes(data[base:base + CHUNK])
+    header_crc = zlib.crc32(chunk[:120] + chunk[128:512]) & 0xFFFFFFFF
+    struct.pack_into("<I", data, base + 124, header_crc)
+
+    print(
+        f"chunk @{base:#x}: {len(records)} record, "
+        f"id {first_id}-{last_id}, free={free_offset:#x}"
+    )
+    return True
+
+
+def main(src, dst):
+    with open(src, "rb") as source:
+        data = bytearray(source.read())
+    count = 0
+    for base in range(HDR, len(data) - CHUNK + 1, CHUNK):
+        count += fix_chunk(data, base)
+    with open(dst, "wb") as output:
+        output.write(data)
+    print(f"xong: sua {count} chunk -> {dst}")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1], sys.argv[2])
+```
+
+Tiếp theo trong CMD sử dụng:
+
+```console
+python <ten_ban_tu_dat_hiiii>.py "Microsoft-Windows-PowerShell%4Operational.evtx" PS_fixed.evtx
+```
+
+![Kết quả rà và cập nhật một chunk EVTX, tìm thấy chín record có ID từ một đến chín](/assets/img/posts/hidden-investigations/tessera/chunk-repair.png){: width="1600" height="142" }
+_Chunk tại 0x1000 có 9 record, ID 1-9 và free offset 0x92a0._
+
+Tiếp theo đó mình dùng **EvtxECmd** để trích log ra CSV cho dễ nhìn rồi mở bằng **Timeline Explorer**. Như hình dưới thì ta đã đọc được. Lọc Event ID **`4104`** sẽ thấy ba record chứa `ScriptBlockText` của các stage.
+
+![Timeline Explorer hiển thị ba sự kiện PowerShell 4104 sau khi xuất log sang CSV](/assets/img/posts/hidden-investigations/tessera/scriptblock-events.png){: width="1627" height="886" }
+_Các script block cung cấp đầu mối cho cả ba tầng._
+
+### Tầng 1 - Dấu vết ALPC/ETW
+
+Trong script **STAGE 1** có:
+
+```powershell
+$FlagPart1   = "1ist-----hiCTF{alpc_p0rt_c0lloquy_"
+$Stage2_Clue = "TargetService:DiagTrackSvcAux"
+$PortName    = "\RPC Control\AepLocalEndpoint_Q8"
+```
+
+![Script block STAGE 1 chứa mảnh flag đầu tiên và đầu mối trỏ đến service của tầng hai](/assets/img/posts/hidden-investigations/tessera/stage-1-alpc.png){: width="1637" height="943" }
+_Mảnh đầu nằm trong biến FlagPart1._
+
+Đoạn này chuẩn bị một ETW event mang nhãn port và dữ liệu đã XOR. Nhưng ngay trong script block thì mình đã thấy chuỗi trước khi làm rối rồi. Bỏ nhãn `1ist-----` là được phần đầu:
+
+```plaintext
+hiCTF{alpc_p0rt_c0lloquy_
+```
+
+Đoạn `TargetService:DiagTrackSvcAux` cũng gợi service của tầng 2.
+
+### Tầng 2 - Kho DPAPI
+
+Script **STAGE 2** chứa:
+
+```plaintext
+FlagPart2 = --s32nd--s35s10n_z3r0_syst3npr0f1l3_
+NextKey = T3ss3r4_K3y_8819472MasterSecret!
+IV_HEX = 101112131415161718191a1b1c1d1e1f
+```
+
+![Script block STAGE 2 hiển thị mảnh flag thứ hai, khóa cho tầng sau và IV](/assets/img/posts/hidden-investigations/tessera/stage-2-dpapi.png){: width="1631" height="920" }
+_FlagPart2 cùng các giá trị dùng để nối sang STAGE 3._
+
+Các giá trị này nằm ngay trong `ScriptBlockText`, ở đoạn chuẩn bị dữ liệu trước khi gọi DPAPI. Mình bỏ nhãn `--s32nd--` thì được:
+
+```plaintext
+s35s10n_z3r0_syst3npr0f1l3_
+```
+
+Giữ nguyên đoạn `syst3npr0f1l3` như trong script nhé. Còn `NextKey` thì để đối chiếu với tầng cuối.
+
+### Tầng 3 - Reparse buffer
+
+Script **STAGE 3** chứa:
+
+```powershell
+$Flag3_Raw = "iiiiiiiiiii-3hird---r3p4r53_buff3r_vort3x}"
+$SecretKey = "T3ss3r4_K3y_8819472MasterSecret!"
+```
+
+![Script block STAGE 3 chứa mảnh flag cuối và SecretKey khớp NextKey của STAGE 2](/assets/img/posts/hidden-investigations/tessera/stage-3-reparse.png){: width="1634" height="899" }
+_Chuỗi plaintext được dùng để chuẩn bị payload cho reparse buffer._
+
+`SecretKey` khớp với `NextKey` bên trên. Phần sau chuẩn bị mã hóa AES và ghi payload vào reparse buffer, còn chuỗi `Flag3_Raw` trước khi mã hóa thì đã có ngay trong log.
+
+Bỏ nhãn `iiiiiiiiiii-3hird---`, lấy:
+
+```plaintext
+r3p4r53_buff3r_vort3x}
+```
+
+### Flag cuối cùng
+
+Giờ ghép ba phần theo thứ tự stage, lấy phần flag thôi chứ không ghép mấy nhãn thứ tự:
+
+```plaintext
+hiCTF{alpc_p0rt_c0lloquy_
+s35s10n_z3r0_syst3npr0f1l3_
+r3p4r53_buff3r_vort3x}
+```
+
+Ghép lại thành một dòng là ra flag:
+
+```plaintext
+hiCTF{alpc_p0rt_c0lloquy_s35s10n_z3r0_syst3npr0f1l3_r3p4r53_buff3r_vort3x}
 ```
