@@ -340,8 +340,21 @@ html:root[data-bs-theme='dark'] {
     span { display: inline-flex; align-items: center; margin: 0; line-height: 1.5; }
     span::after { font-size: 0.75rem; font-weight: 700; }
     span i { width: 1.5rem; }
-    button { flex-shrink: 0; width: 2.5rem; height: 2.5rem; margin: 0; border-radius: 2px; }
-    button:focus-visible { outline: 2px solid var(--accent-color); outline-offset: -2px; }
+    button {
+      flex-shrink: 0;
+      width: 2.5rem;
+      height: 2.5rem;
+      margin: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    button:focus-visible { outline: none; }
+    button:focus-visible i {
+      color: var(--accent-color);
+      text-decoration: underline;
+      text-underline-offset: 0.25em;
+    }
   }
 
   .highlight {
@@ -421,8 +434,7 @@ footer { font-size: 0.68rem; line-height: 1.8; }
 html:root[data-bs-theme='dark'] {
   .btn:not(.disabled):not(:disabled):is(:hover, :focus-visible),
   .post-tag:is(:hover, :focus-visible),
-  #tags .tag:is(:hover, :focus-visible),
-  .code-header button:is(:hover, :focus-visible) {
+  #tags .tag:is(:hover, :focus-visible) {
     border-color: var(--accent-color) !important;
   }
 
