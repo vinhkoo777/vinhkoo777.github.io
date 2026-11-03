@@ -13,6 +13,7 @@ preview_image:
   alt: "Hidden Investigations CTF 2026 - Break the Signal"
   width: 1200
   height: 549
+pin: true
 ---
 
 ## The Miner That Mined the Victim
