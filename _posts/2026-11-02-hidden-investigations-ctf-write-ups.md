@@ -405,3 +405,27 @@ hiCTF{c4r3ful_4b0ut_cr4ck3d_t001s_b4c108e678}
 _Challenge hoàn tất với toàn bộ câu trả lời chính xác._
 
 Điểm mình thích ở bài này là phải ghép **nhiều artifact cho cùng một sự kiện**. Edge trả lời phần tải xuống, Prefetch hỗ trợ xác nhận thực thi, Sysmon mô tả hành vi và `$MFT` giữ lại những gì tưởng đã mất. Xóa tool thì nhanh; xóa sạch câu chuyện nó để lại lại là chuyện khác.
+
+## Ghost in the Wire
+
+Một nhóm giám sát mạng đã phát hiện được lưu lượng ICMP bất thường. Có dữ liệu được truyền ra ngoài. Nhưng mà nó lại bị hòa lẫn nào nhiễu mạng thông thường bây giờ hãy thu thập và phân tích "Ghost"
+
+### Cách giải
+
+Ở đây tui sẽ thực hiện ở **Wireshark**. Và như hình dưới có rất nhiều gói tin ICMP được gửi từ IP **10.13.37.1** đến **10.13.37.2**
+
+![các gói tin trong 1 file pcap](/assets/img/posts/hidden-investigations/ghost-in-the-wire/Ghost_in_the_wire_1.png){: width="1625" height="927" }
+_Danh sách các gói tin._
+
+Tiếp theo đó ta thử xem payload gói tin thử. Khi này ta nhận ra đó là 1 chữ trong kí tự flag và mình tiếp tục xem và ghi lại thì sẽ ra được full flag.
+
+![Điều tra đoạn payload trong gói tin ICMP](/assets/img/posts/hidden-investigations/ghost-in-the-wire/Ghost_in_the_wire_2.png){: width="1627" height="928" }
+_Tìm thấy được kí tự h trong cấu trúc flag của hiCTF{}._
+
+### Flag cuối cùng
+
+Sau khi ghép đầy đủ kí tự
+
+```plaintext
+hiCTF{1cmp_3xf1l_d3t3ct3d}
+```

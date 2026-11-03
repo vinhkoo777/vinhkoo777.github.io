@@ -111,7 +111,11 @@ html:root { font-size: 16px; }
 body {
   font-family: 'JetBrains Mono', monospace;
   font-size: 1rem;
-  line-height: 1.8;
+  line-height: 1.7;
+  text-align: left;
+  text-justify: none;
+  letter-spacing: -0.02em;
+  word-spacing: -0.18em;
   font-variant-ligatures: none;
   -webkit-font-smoothing: antialiased;
 }
@@ -121,6 +125,8 @@ code, kbd, pre, samp, .highlight, .highlight .lineno,
 #topbar-title, #tags .tag span {
   font-family: 'JetBrains Mono', monospace;
 }
+
+code, kbd, pre, samp { letter-spacing: normal; word-spacing: normal; }
 
 h1, h2, h3, h4, h5, h6 { line-height: 1.4; font-weight: 700; color: var(--accent-color); }
 strong, b { color: var(--accent-color); font-weight: 700; }
@@ -202,7 +208,7 @@ a, button, input { -webkit-tap-highlight-color: rgb(180 180 180 / 18%); }
   .card:hover { border-color: #666666; }
   .card .card-body { padding: 1.4rem 1.5rem; }
   .card-title { font-size: 1.25rem; line-height: 1.55; letter-spacing: -0.035em; }
-  .card-text p { font-size: 0.88rem; line-height: 1.8; -webkit-line-clamp: 3; }
+  .card-text p { font-size: 0.88rem; line-height: 1.65; -webkit-line-clamp: 3; }
   .post-meta { font-size: 0.72rem; line-height: 1.8; }
   .post-preview { min-height: 0; }
   .post-preview img { height: 100%; object-fit: cover; }
@@ -228,11 +234,11 @@ article {
   > header .post-desc { color: var(--text-color); }
   .content {
     font-size: 1rem;
-    line-height: 1.9;
+    line-height: 1.65;
     overflow-wrap: anywhere;
-    h2 { font-size: 1.5rem; margin-top: 2.8rem; margin-bottom: 1.2rem; letter-spacing: -0.04em; }
-    h3 { font-size: 1.18rem; margin-top: 2rem; margin-bottom: 1rem; }
-    p, ul, ol, blockquote, .table-wrapper { margin-bottom: 1.4rem; }
+    h2 { font-size: 1.5rem; margin-top: 2.2rem; margin-bottom: 1rem; letter-spacing: -0.04em; }
+    h3 { font-size: 1.18rem; margin-top: 1.6rem; margin-bottom: 0.85rem; }
+    p, ul, ol, blockquote, .table-wrapper { margin-bottom: 1.1rem; }
     img { border: 1px solid var(--main-border-color); border-radius: 2px; }
     img + em { font-size: 0.8rem; line-height: 1.7; }
     a { text-underline-offset: 0.2em; }
@@ -428,7 +434,6 @@ html:root[data-bs-theme='dark'] #archives ul li:nth-child(odd) {
   #sidebar #avatar { width: 96px; height: 96px; }
   #post-list .card .card-body { padding: 1.25rem; }
   #post-list .post-preview img { aspect-ratio: 1200 / 630; height: auto; }
-  article .content { line-height: 1.85; }
   article .content h2 { font-size: 1.35rem; }
 }
 
