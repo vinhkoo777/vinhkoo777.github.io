@@ -8,6 +8,11 @@ tags: [dfir, windows, ransomware, sysmon, png, memory-forensics, evtx]
 author: koga
 toc: true
 comments: false
+preview_image:
+  path: /assets/img/posts/hidden-investigations/cover.webp
+  alt: "Hidden Investigations CTF 2026 - Break the Signal"
+  width: 1200
+  height: 549
 ---
 
 ## The Miner That Mined the Victim

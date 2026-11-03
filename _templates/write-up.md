@@ -6,6 +6,12 @@ categories: [Write-up]
 tags: []
 toc: true
 comments: false
+# Optional image for the home card only; omit it for a text-only card.
+# preview_image:
+#   path: /assets/img/posts/event-banner.webp
+#   alt: "Event name"
+#   width: 1200
+#   height: 630
 ---
 
 <!--
