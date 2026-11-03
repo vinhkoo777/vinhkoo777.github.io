@@ -21,8 +21,8 @@
 :root,
 html:root[data-bs-theme='dark'] {
   --accent-color: #7b96c4;
-  --trending-tag-color: #b8a6dc;
-  --trending-tag-hover-color: #ded1f4;
+  --trending-tag-color: #c7a66b;
+  --trending-tag-hover-color: #e5c58d;
   --main-bg: #101010;
   --main-border-color: #2c2c2c;
   --text-color: #d4d4d4;
@@ -432,7 +432,7 @@ html:root[data-bs-theme='dark'] {
     box-shadow: inset 0 0 0 1px var(--accent-color);
   }
 
-  // Lavender adds a small accent while keeping the tag surfaces charcoal.
+  // Muted amber adds a small accent while keeping the tag surfaces charcoal.
   #panel-wrapper .post-tag {
     color: var(--trending-tag-color);
     background: #1b1b1b;
